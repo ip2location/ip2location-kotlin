@@ -9,7 +9,7 @@ As an alternative, this IP Geolocation Kotlin module can also call the IP2Locati
 
 https://www.ip2location.com/web-service/ip2location
 
-## Pre-requisite ##
+## Requirements ##
 Intellij IDEA: https://www.jetbrains.com/idea/
 
 ## QUERY USING THE BIN FILE

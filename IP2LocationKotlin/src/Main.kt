@@ -1,71 +1,5 @@
-# IP2Location IP Geolocation Kotlin Module
-
-This IP Geolocation Kotlin module allows user to query an IP address for info such as the visitor’s country, region, city, ISP or company name. In addition, users can also determine extra useful geolocation information such as latitude, longitude, ZIP code, domain name, time zone, connection speed, IDD code, area code, weather station code, weather station name, MCC, MNC, mobile brand name, elevation and usage type. It lookup the IP address from **IP2Location BIN Data** file. This data file can be downloaded at
-
-* Free IP2Location IP Geolocation BIN Data: https://lite.ip2location.com
-* Commercial IP2Location IP Geolocation BIN Data: https://www.ip2location.com/database/ip2location
-
-As an alternative, this IP Geolocation Kotlin module can also call the IP2Location Web Service. This requires an API key. If you don't have an existing API key, you can subscribe for one at the below:
-
-https://www.ip2location.com/web-service/ip2location
-
-** Pre-requisite **
-Intellij IDEA: https://www.jetbrains.com/idea/
-
-## QUERY USING THE BIN FILE
-
-## Functions
-Below are the functions supported in this module.
-
-|Function Name|Description|
-|---|---|
-|open(DBPath: String, UseMMF: Boolean)|Initialize the component with the BIN file path and whether to use MemoryMappedFile.|
-|open(DBPath: String)|Initialize the component with the BIN file path.|
-|ipQuery(IPAddress: String?)|Query IP address. This function returns results in the IPResult object.|
-|close()|Destroys the mapped bytes.|
-
-## Result properties
-Below are the result properties.
-
-|Property Name|Description|
-|---|---|
-|countryShort|Two-character country code based on ISO 3166.|
-|countryLong|Country name based on ISO 3166.|
-|region|Region or state name.|
-|city|City name.|
-|latitude|City level latitude.|
-|longitude|City level longitude.|
-|zIPCode|ZIP code or postal code.|
-|timeZone|Time zone in UTC (Coordinated Universal Time).|
-|iSP|Internet Service Provider (ISP) name.|
-|domain|Domain name associated to IP address range.|
-|netSpeed|Internet connection speed <ul><li>(DIAL) Dial-up</li><li>(DSL) DSL/Cable</li><li>(COMP) Company/T1</li></ul>|
-|iDDCode|The IDD prefix to call the city from another country.|
-|areaCode|A varying length number assigned to geographic areas for call between cities.|
-|weatherStationCode|Special code to identify the nearest weather observation station.|
-|weatherStationName|Name of the nearest weather observation station.|
-|mCC|Mobile country code.|
-|mNC|Mobile network code.|
-|mobileBrand|Mobile carrier brand.|
-|elevation|Average height of city above sea level in meters (m).|
-|usageType|Usage type classification of ISP or company:<ul><li>(COM) Commercial</li><li>(ORG) Organization</li><li>(GOV) Government</li><li>(MIL) Military</li><li>(EDU) University/College/School</li><li>(LIB) Library</li><li>(CDN) Content Delivery Network</li><li>(ISP) Fixed Line ISP</li><li>(MOB) Mobile ISP</li><li>(DCH) Data Center/Web Hosting/Transit</li><li>(SES) Search Engine Spider</li><li>(RSV) Reserved</li></ul>|
-|status|Status code of query.|
-
-## Status codes
-Below are the status codes.
-|Code|Description|
-|---|---|
-|OK|The query has been successfully performed.|
-|EMPTY_IP_ADDRESS|The IP address is empty.|
-|INVALID_IP_ADDRESS|The format of the IP address is wrong.|
-|MISSING_FILE|The BIN file path is wrong or the BIN file is unreadable.|
-|IP_ADDRESS_NOT_FOUND|The IP address does not exists in the BIN file.|
-|IPV6_NOT_SUPPORTED|The BIN file does not contain IPv6 data.|
-
-## Usage
-
-```kotlin
 import kotlin.jvm.JvmStatic
+import com.google.gson.JsonObject
 import java.lang.Exception
 
 object Main {
@@ -75,7 +9,7 @@ object Main {
             val strIPAddress = "8.8.8.8"
 
             // querying with the BIN file
-            val dbPath = "/usr/data/IP-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE.BIN"
+            val dbPath = "C:/mydata/IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE.BIN"
             val useMMF = true
 
             var loc = IP2Location()
@@ -92,59 +26,6 @@ object Main {
                 else -> println("Unknown error." + rec.status)
             }
             loc.close()
-
-        } catch (e: Exception) {
-            println(e)
-            e.printStackTrace(System.out)
-        }
-    }
-}
-```
-
-## QUERY USING THE IP2LOCATION IP GEOLOCATION WEB SERVICE
-
-## Functions
-Below are the functions supported in this module.
-
-|Function Name|Description|
-|---|---|
-|open(aPIKey: String, packageName: String, useSSL: Boolean = true)|Initialize component with the API key and package (WS1 to WS24).|
-|ipQuery(ipAddress: String?)|Query IP address. This function returns a JsonObject.|
-|ipQuery(ipAddress: String?, language: String?)|Query IP address and translation language. This function returns a JsonObject.|
-|ipQuery(ipAddress: String?, addOns: Array<String>, language: String?)|Query IP address and Addons. This function returns a JsonObject.|
-|getCredit()|This function returns the web service credit balance in a JsonObject.|
-
-Below are the Addons supported in this module.
-
-|Addon Name|Description|
-|---|---|
-|continent|Returns continent code, name, hemispheres and translations.|
-|country|Returns country codes, country name, flag, capital, total area, population, currency info, language info, IDD, TLD and translations.|
-|region|Returns region code, name and translations.|
-|city|Returns city name and translations.|
-|geotargeting|Returns metro code based on the ZIP/postal code.|
-|country_groupings|Returns group acronyms and names.|
-|time_zone_info|Returns time zones, DST, GMT offset, sunrise and sunset.|
-
-## Result fields
-Below are the result fields.
-
-|Name|
-|---|
-|<ul><li>country_code</li><li>country_name</li><li>region_name</li><li>city_name</li><li>latitude</li><li>longitude</li><li>zip_code</li><li>time_zone</li><li>isp</li><li>domain</li><li>net_speed</li><li>idd_code</li><li>area_code</li><li>weather_station_code</li><li>weather_station_name</li><li>mcc</li><li>mnc</li><li>mobile_brand</li><li>elevation</li><li>usage_type</li><li>continent<ul><li>name</li><li>code</li><li>hemisphere</li><li>translations</li></ul></li><li>country<ul><li>name</li><li>alpha3_code</li><li>numeric_code</li><li>demonym</li><li>flag</li><li>capital</li><li>total_area</li><li>population</li><li>currency<ul><li>code</li><li>name</li><li>symbol</li></ul></li><li>language<ul><li>code</li><li>name</li></ul></li><li>idd_code</li><li>tld</li><li>translations</li></ul></li><li>region<ul><li>name</li><li>code</li><li>translations</li></ul></li><li>city<ul><li>name</li><li>translations</li></ul></li><li>geotargeting<ul><li>metro</li></ul></li><li>country_groupings</li><li>time_zone_info<ul><li>olson</li><li>current_time</li><li>gmt_offset</li><li>is_dst</li><li>sunrise</li><li>sunset</li></ul></li><ul>|
-
-## Usage
-
-```kotlin
-import kotlin.jvm.JvmStatic
-import com.google.gson.JsonObject
-import java.lang.Exception
-
-object Main {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        try {
-            val strIPAddress = "8.8.8.8"
 
             // querying with the web service
             val ws = IP2LocationWebService()
@@ -267,4 +148,3 @@ object Main {
         }
     }
 }
-```

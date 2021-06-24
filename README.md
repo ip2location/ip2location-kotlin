@@ -151,7 +151,7 @@ object Main {
             // querying with the web service
             val ws = IP2LocationWebService()
             val strAPIKey = "XXXXXXXXXX" // replace this with your IP2Location Web Service API key
-            val strPackage = "WS24"
+            val strPackage = "WS25"
             val addOn = arrayOf("continent", "country", "region", "city", "geotargeting", "country_groupings", "time_zone_info")
             val strLang = "es"
             val boolSSL = true

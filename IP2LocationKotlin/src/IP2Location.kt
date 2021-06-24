@@ -28,10 +28,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2020 IP2Location.com
+ * Copyright (c) 2002-2021 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.0.0
+ * @version 8.1.0
  */
 class IP2Location {
     private var metaData: MetaData? = null
@@ -77,6 +77,8 @@ class IP2Location {
     private var mobileBrandPositionOffset = 0
     private var elevationPositionOffset = 0
     private var usageTypePositionOffset = 0
+    private var addressTypePositionOffset = 0
+    private var categoryPositionOffset = 0
     private var countryEnabled = false
     private var regionEnabled = false
     private var cityEnabled = false
@@ -96,6 +98,8 @@ class IP2Location {
     private var mobileBrandEnabled = false
     private var elevationEnabled = false
     private var usageTypeEnabled = false
+    private var addressTypeEnabled = false
+    private var categoryEnabled = false
 
     /**
      * This function can be used to pre-load the BIN file.
@@ -119,22 +123,14 @@ class IP2Location {
      * This function destroys the mapped bytes.
      */
     fun close() {
-        if (metaData != null) {
-            metaData = null
-        }
+        metaData = null
         destroyMappedBytes()
     }
 
     private fun destroyMappedBytes() {
-        if (ipV4Buffer != null) {
-            ipV4Buffer = null
-        }
-        if (ipV6Buffer != null) {
-            ipV6Buffer = null
-        }
-        if (mapDataBuffer != null) {
-            mapDataBuffer = null
-        }
+        ipV4Buffer = null
+        ipV6Buffer = null
+        mapDataBuffer = null
     }
 
     @Throws(IOException::class)
@@ -144,41 +140,32 @@ class IP2Location {
             aFile = RandomAccessFile(ipDatabasePath, "r")
             val inChannel = aFile.channel
             createMappedBytes(inChannel)
-        } catch (ex: IOException) {
-            throw ex
         } finally {
-            if (aFile != null) {
-                aFile.close()
-                aFile = null
-            }
+            aFile?.close()
         }
     }
 
     @Throws(IOException::class)
     private fun createMappedBytes(inChannel: FileChannel) {
-        try {
-            if (ipV4Buffer == null) {
-                val ipV4Bytes = ipV4ColumnSize.toLong() * metaData!!.dbCount.toLong()
-                ipV4Offset = metaData!!.baseAddr - 1.toLong()
-                ipV4Buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, ipV4Offset, ipV4Bytes)
-                ipV4Buffer?.order(ByteOrder.LITTLE_ENDIAN)
-                mapDataOffset = ipV4Offset + ipV4Bytes
-            }
+        if (ipV4Buffer == null) {
+            val ipV4Bytes = ipV4ColumnSize.toLong() * metaData!!.dbCount.toLong()
+            ipV4Offset = metaData!!.baseAddr - 1.toLong()
+            ipV4Buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, ipV4Offset, ipV4Bytes)
+            ipV4Buffer?.order(ByteOrder.LITTLE_ENDIAN)
+            mapDataOffset = ipV4Offset + ipV4Bytes
+        }
 
-            if (!metaData!!.oldBIN && ipV6Buffer == null) {
-                val ipV6Bytes = ipV6ColumnSize.toLong() * metaData!!.dbCountIPV6.toLong()
-                ipV6Offset = metaData!!.baseAddrIPV6 - 1.toLong()
-                ipV6Buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, ipV6Offset, ipV6Bytes)
-                ipV6Buffer?.order(ByteOrder.LITTLE_ENDIAN)
-                mapDataOffset = ipV6Offset + ipV6Bytes
-            }
-            if (mapDataBuffer == null) {
-                mapDataBuffer =
-                        inChannel.map(FileChannel.MapMode.READ_ONLY, mapDataOffset, inChannel.size() - mapDataOffset)
-                mapDataBuffer?.order(ByteOrder.LITTLE_ENDIAN)
-            }
-        } catch (ex: IOException) {
-            throw ex
+        if (!metaData!!.oldBIN && ipV6Buffer == null) {
+            val ipV6Bytes = ipV6ColumnSize.toLong() * metaData!!.dbCountIPV6.toLong()
+            ipV6Offset = metaData!!.baseAddrIPV6 - 1.toLong()
+            ipV6Buffer = inChannel.map(FileChannel.MapMode.READ_ONLY, ipV6Offset, ipV6Bytes)
+            ipV6Buffer?.order(ByteOrder.LITTLE_ENDIAN)
+            mapDataOffset = ipV6Offset + ipV6Bytes
+        }
+        if (mapDataBuffer == null) {
+            mapDataBuffer =
+                    inChannel.map(FileChannel.MapMode.READ_ONLY, mapDataOffset, inChannel.size() - mapDataOffset)
+            mapDataBuffer?.order(ByteOrder.LITTLE_ENDIAN)
         }
     }
 
@@ -205,6 +192,14 @@ class IP2Location {
                 metaData!!.baseAddrIPV6 = headerBuffer.getInt(17) // 4 bytes
                 metaData!!.indexBaseAddr = headerBuffer.getInt(21) //4 bytes
                 metaData!!.indexBaseAddrIPV6 = headerBuffer.getInt(25) //4 bytes
+                metaData!!.productCode = headerBuffer[29].toInt()
+                metaData!!.productType = headerBuffer[30].toInt()
+                metaData!!.fileSize = headerBuffer.getInt(31) //4 bytes
+
+                // check if is correct BIN (should be 1 for IP2Location BIN file), also checking for zipped file (PK being the first 2 chars)
+                if ((metaData!!.productCode != 1 && metaData!!.dbYear >= 21) || (metaData!!.dbType == 80 && metaData!!.dbColumn == 75)) { // only BINs from Jan 2021 onwards have this byte set
+                    throw IOException("Incorrect IP2Location BIN file format. Please make sure that you are using the latest IP2Location BIN file.")
+                }
 
                 if (metaData!!.indexBaseAddr > 0) {
                     metaData?.indexed = true
@@ -240,6 +235,8 @@ class IP2Location {
                 mobileBrandPositionOffset = if (MOBILEBRAND_POSITION[dbType] != 0) MOBILEBRAND_POSITION[dbType] - 2 shl 2 else 0
                 elevationPositionOffset = if (ELEVATION_POSITION[dbType] != 0) ELEVATION_POSITION[dbType] - 2 shl 2 else 0
                 usageTypePositionOffset = if (USAGETYPE_POSITION[dbType] != 0) USAGETYPE_POSITION[dbType] - 2 shl 2 else 0
+                addressTypePositionOffset = if (ADDRESSTYPE_POSITION[dbType] != 0) ADDRESSTYPE_POSITION[dbType] - 2 shl 2 else 0
+                categoryPositionOffset = if (CATEGORY_POSITION[dbType] != 0) CATEGORY_POSITION[dbType] - 2 shl 2 else 0
                 countryEnabled = COUNTRY_POSITION[dbType] != 0
                 regionEnabled = REGION_POSITION[dbType] != 0
                 cityEnabled = CITY_POSITION[dbType] != 0
@@ -259,12 +256,15 @@ class IP2Location {
                 mobileBrandEnabled = MOBILEBRAND_POSITION[dbType] != 0
                 elevationEnabled = ELEVATION_POSITION[dbType] != 0
                 usageTypeEnabled = USAGETYPE_POSITION[dbType] != 0
+                addressTypeEnabled = ADDRESSTYPE_POSITION[dbType] != 0
+                categoryEnabled = CATEGORY_POSITION[dbType] != 0
                 if (metaData!!.indexed) {
+                    // reading indexes
                     val indexBuffer = inChannel.map(
                             FileChannel.MapMode.READ_ONLY,
                             metaData!!.indexBaseAddr - 1.toLong(),
                             metaData!!.baseAddr - metaData!!.indexBaseAddr.toLong()
-                    ) // reading indexes
+                    )
                     indexBuffer.order(ByteOrder.LITTLE_ENDIAN)
                     var pointer = 0
 
@@ -290,13 +290,8 @@ class IP2Location {
                 }
                 loadOK = true
             }
-        } catch (ex: IOException) {
-            throw ex
         } finally {
-            if (aFile != null) {
-                aFile.close()
-                aFile = null
-            }
+            aFile?.close()
         }
         return loadOK
     }
@@ -319,17 +314,15 @@ class IP2Location {
                 return record
             }
             var ipNo: BigInteger
-            var indexAddr = 0
-            var actualIPType = 0
-            var myIPType = 0
-            val myDBType = 0
+            val indexAddr: Int
+            val actualIPType: Int
+            var myIPType: Int
             var myBaseAddr = 0
-            val myDBColumn = 0
-            var myColumnSize = 0
+            val myColumnSize: Int
             var myBufCapacity = 0
-            var maxIPRange = BigInteger.ZERO
-            var rowOffset: Long = 0
-            var rowOffset2: Long = 0
+            val maxIPRange: BigInteger
+            var rowOffset: Long
+            var rowOffset2: Long
             val bi: Array<BigInteger>
             var overCapacity = false
             val retArr: Array<String>
@@ -348,11 +341,11 @@ class IP2Location {
                 return record
             }
             var low: Long = 0
-            var high: Long = 0
-            var mid: Long = 0
-            var position: Long = 0
-            var ipFrom = BigInteger.ZERO
-            var ipTo = BigInteger.ZERO
+            var high: Long
+            var mid: Long
+            var position: Long
+            var ipFrom: BigInteger
+            var ipTo: BigInteger
 
             // Read BIN if haven't done so
             if (metaData == null) {
@@ -369,10 +362,6 @@ class IP2Location {
             } else {
                 destroyMappedBytes()
                 fileHandle = RandomAccessFile(ipDatabasePath, "r")
-                if (fileHandle == null) {
-                    record.status = "MISSING_FILE"
-                    return record
-                }
             }
             if (myIPType == 4) { // IPv4
                 maxIPRange = MAX_IPV4_RANGE
@@ -429,8 +418,7 @@ class IP2Location {
 
                     // read the row here after the IP From column (remaining columns are all 4 bytes)
                     val rowLen = myColumnSize - firstCol
-                    val row: ByteArray
-                    row = readRow(rowOffset + firstCol, rowLen.toLong(), myBuffer, fileHandle)
+                    val row = readRow(rowOffset + firstCol, rowLen.toLong(), myBuffer, fileHandle)
                     if (useMemoryMappedFile) {
                         myDataBuffer = mapDataBuffer!!.duplicate() // this is to enable reading of a range of bytes in multi-threaded environment
                         myDataBuffer.order(ByteOrder.LITTLE_ENDIAN)
@@ -550,6 +538,18 @@ class IP2Location {
                     } else {
                         record.usageType = IPResult.NOT_SUPPORTED
                     }
+                    if (addressTypeEnabled) {
+                        position = read32Row(row, addressTypePositionOffset).toLong()
+                        record.addressType = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.addressType = IPResult.NOT_SUPPORTED
+                    }
+                    if (categoryEnabled) {
+                        position = read32Row(row, categoryPositionOffset).toLong()
+                        record.category = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.category = IPResult.NOT_SUPPORTED
+                    }
                     record.status = "OK"
                     break
                 } else {
@@ -561,14 +561,8 @@ class IP2Location {
                 }
             }
             return record
-        } catch (ex: IOException) {
-            // ex.printStackTrace(System.out);
-            throw ex
         } finally {
-            if (fileHandle != null) {
-                fileHandle.close()
-                fileHandle = null
-            }
+            fileHandle?.close()
         }
     }
 
@@ -803,7 +797,7 @@ class IP2Location {
 
     @Throws(IOException::class)
     private fun read128(position: Long, myBuffer: ByteBuffer?, fileHandle: RandomAccessFile?): BigInteger {
-        var retVal = BigInteger.ZERO
+        val retVal: BigInteger
         val bSize = 16
         val buf = ByteArray(bSize)
         if (useMemoryMappedFile) {
@@ -850,7 +844,7 @@ class IP2Location {
     ): String? {
         var pos = position
         val size: Int
-        var buf: ByteArray? = null
+        val buf: ByteArray
         if (useMemoryMappedFile) {
             pos -= mapDataOffset // position stored in BIN file is for full file, not just the mapped data segment, so need to minus
             size = mapDataBuffer!![pos.toInt()].toInt() // use absolute offset to be thread-safe (keep using the original buffer since is absolute position & just reading 1 byte)
@@ -881,21 +875,6 @@ class IP2Location {
         return java.lang.Float.intBitsToFloat(((buf[3].toInt() and 0xff) shl 24) or ((buf[2].toInt() and 0xff) shl 16) or ((buf[1].toInt() and 0xff) shl 8) or (buf[0].toInt() and 0xff)) // the AND is converting byte to unsigned byte in the form of an int
     }
 
-    @Throws(IOException::class)
-    private fun readFloat(position: Long, myBuffer: MappedByteBuffer, fileHandle: RandomAccessFile): Float {
-        return if (useMemoryMappedFile) {
-            myBuffer.getFloat(position.toInt())
-        } else {
-            val bSize = 4
-            fileHandle.seek(position - 1)
-            val ptr = IntArray(bSize)
-            for (x in 0 until bSize) {
-                ptr[x] = fileHandle.read()
-            }
-            java.lang.Float.intBitsToFloat((ptr[3] shl 24) or (ptr[2] shl 16) or (ptr[1] shl 8) or ptr[0])
-        }
-    }
-
     private fun setDecimalPlaces(myFloat: Float): String {
         val currentLocale = Locale.getDefault()
         val nf = NumberFormat.getNumberInstance(currentLocale)
@@ -906,8 +885,8 @@ class IP2Location {
 
     @Throws(UnknownHostException::class)
     private fun ip2No(ipString: String): Array<BigInteger> {
-        var a1 = BigInteger.ZERO
-        var a2 = BigInteger.ZERO
+        val a1: BigInteger
+        var a2: BigInteger
         var a3 = BigInteger("4")
         if (pattern.matcher(ipString).matches()) { // should be IPv4
             a1 = BigInteger("4")
@@ -925,13 +904,13 @@ class IP2Location {
                 myIPType = "4"
             }
             a2 = BigInteger(1, byteArr) // confirmed correct for IPv6
-            if (a2 >= FROM_6TO4 && a2 <= TO_6TO4) {
+            if (a2 in FROM_6TO4..TO_6TO4) {
                 // 6to4 so need to remap to ipv4
                 myIPType = "4"
                 a2 = a2.shiftRight(80)
                 a2 = a2.and(LAST_32BITS)
                 a3 = BigInteger("4")
-            } else if (a2 >= FROM_TEREDO && a2 <= TO_TEREDO) {
+            } else if (a2 in FROM_TEREDO..TO_TEREDO) {
                 // Teredo so need to remap to ipv4
                 myIPType = "4"
                 a2 = a2.not()
@@ -946,7 +925,7 @@ class IP2Location {
     private fun ipV4No(ipString: String): Long {
         val ipAddressInArray = ipString.split("\\.".toRegex()).toTypedArray()
         var result: Long = 0
-        var ip: Long = 0
+        var ip: Long
         for (x in 3 downTo 0) {
             ip = ipAddressInArray[3 - x].toLong()
             result = result or (ip shl (x shl 3))
@@ -974,42 +953,46 @@ class IP2Location {
         private val TO_TEREDO = BigInteger("42540488241204005274814694018844196863")
         private val LAST_32BITS = BigInteger("4294967295")
         private val COUNTRY_POSITION =
-                intArrayOf(0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+                intArrayOf(0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
         private val REGION_POSITION =
-                intArrayOf(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
+                intArrayOf(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
         private val CITY_POSITION =
-                intArrayOf(0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)
+                intArrayOf(0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)
         private val ISP_POSITION =
-                intArrayOf(0, 0, 3, 0, 5, 0, 7, 5, 7, 0, 8, 0, 9, 0, 9, 0, 9, 0, 9, 7, 9, 0, 9, 7, 9)
+                intArrayOf(0, 0, 3, 0, 5, 0, 7, 5, 7, 0, 8, 0, 9, 0, 9, 0, 9, 0, 9, 7, 9, 0, 9, 7, 9, 9)
         private val LATITUDE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 5, 5, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5)
+                intArrayOf(0, 0, 0, 0, 0, 5, 5, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5)
         private val LONGITUDE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 6, 6, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)
+                intArrayOf(0, 0, 0, 0, 0, 6, 6, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)
         private val DOMAIN_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 9, 0, 10, 0, 10, 0, 10, 0, 10, 8, 10, 0, 10, 8, 10)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 9, 0, 10, 0, 10, 0, 10, 0, 10, 8, 10, 0, 10, 8, 10, 10)
         private val ZIPCODE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 7, 0, 7, 7, 7, 0, 7)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 7, 0, 7, 7, 7, 0, 7, 7)
         private val TIMEZONE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 7, 8, 8, 8, 7, 8, 0, 8, 8, 8, 0, 8)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 7, 8, 8, 8, 7, 8, 0, 8, 8, 8, 0, 8, 8)
         private val NETSPEED_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 0, 11, 8, 11, 0, 11, 0, 11, 0, 11)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 0, 11, 8, 11, 0, 11, 0, 11, 0, 11, 11)
         private val IDDCODE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 12, 0, 12, 0, 12, 9, 12, 0, 12)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 12, 0, 12, 0, 12, 9, 12, 0, 12, 12)
         private val AREACODE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 0, 13, 0, 13, 10, 13, 0, 13)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 0, 13, 0, 13, 10, 13, 0, 13, 13)
         private val WEATHERSTATIONCODE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 14, 0, 14, 0, 14, 0, 14)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 14, 0, 14, 0, 14, 0, 14, 14)
         private val WEATHERSTATIONNAME_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 0, 15, 0, 15, 0, 15)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 0, 15, 0, 15, 0, 15, 15)
         private val MCC_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 16, 0, 16, 9, 16)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 16, 0, 16, 9, 16, 16)
         private val MNC_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 17, 0, 17, 10, 17)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 17, 0, 17, 10, 17, 17)
         private val MOBILEBRAND_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 18, 0, 18, 11, 18)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 18, 0, 18, 11, 18, 18)
         private val ELEVATION_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 19, 0, 19)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 19, 0, 19, 19)
         private val USAGETYPE_POSITION =
-                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 20)
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 20, 20)
+        private val ADDRESSTYPE_POSITION =
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21)
+        private val CATEGORY_POSITION =
+                intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22)
     }
 }

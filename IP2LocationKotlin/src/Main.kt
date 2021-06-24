@@ -1,21 +1,19 @@
-import kotlin.jvm.JvmStatic
 import com.google.gson.JsonObject
-import java.lang.Exception
 
 object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         try {
-            val strIPAddress = "8.8.8.8"
+            val strIPAddress = "221.121.146.0"
 
             // querying with the BIN file
-            val dbPath = "C:/mydata/IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE.BIN"
+            val dbPath = "./IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY.BIN"
             val useMMF = true
 
-            var loc = IP2Location()
+            val loc = IP2Location()
             loc.open(dbPath, useMMF)
 
-            var rec = loc.ipQuery(strIPAddress)
+            val rec = loc.ipQuery(strIPAddress)
 
             when (rec.status) {
                 "OK" -> println(rec)
@@ -27,10 +25,11 @@ object Main {
             }
             loc.close()
 
+            /*
             // querying with the web service
             val ws = IP2LocationWebService()
             val strAPIKey = "XXXXXXXXXX" // replace this with your IP2Location Web Service API key
-            val strPackage = "WS24"
+            val strPackage = "WS25"
             val addOn = arrayOf("continent", "country", "region", "city", "geotargeting", "country_groupings", "time_zone_info")
             val strLang = "es"
             val boolSSL = true
@@ -58,6 +57,9 @@ object Main {
                 println("mobile_brand: " + if (myResult["mobile_brand"] != null) myResult["mobile_brand"].asString else "")
                 println("elevation: " + if (myResult["elevation"] != null) myResult["elevation"].asString else "")
                 println("usage_type: " + if (myResult["usage_type"] != null) myResult["usage_type"].asString else "")
+                println("address_type: " + if (myResult["address_type"] != null) myResult["address_type"].asString else "")
+                println("category: " + if (myResult["category"] != null) myResult["category"].asString else "")
+                println("category_name: " + if (myResult["category_name"] != null) myResult["category_name"].asString else "")
                 println("credits_consumed: " + if (myResult["credits_consumed"] != null) myResult["credits_consumed"].asString else "")
 
                 // continent addon
@@ -142,9 +144,11 @@ object Main {
             if (myResult["response"] != null) {
                 println("Credit balance: " + myResult["response"].asString)
             }
+            */
         } catch (e: Exception) {
             println(e)
-            e.printStackTrace(System.out)
+            //e.printStackTrace(System.out)
+            throw e
         }
     }
 }

@@ -13,4 +13,7 @@ internal class MetaData {
     var indexedIPV6 = false
     var indexBaseAddr = 0
     var indexBaseAddrIPV6 = 0
+    var productCode = 0
+    var productType = 0
+    var fileSize = 0
 }

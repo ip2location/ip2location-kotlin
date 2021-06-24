@@ -18,10 +18,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2020 IP2Location.com
+ * Copyright (c) 2002-2021 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.0.0
+ * @version 8.1.0
  */
 class IP2LocationWebService {
     private var key = ""
@@ -86,8 +86,6 @@ class IP2LocationWebService {
             language: String?
     ): JsonObject {
         try {
-            var myUrl: String
-            var myJson: String
             checkParams() // check here in case user haven't called Open yet
             val bf = StringBuffer()
             bf.append("http")
@@ -97,13 +95,12 @@ class IP2LocationWebService {
             bf.append("://api.ip2location.com/v2/?key=").append(key).append("&package=").append(packageType)
                     .append("&ip=").append(URLEncoder.encode(ipAddress, "UTF-8")).append("&lang=")
                     .append(URLEncoder.encode(language, "UTF-8"))
-            if (addOns != null && addOns.size > 0) {
+            if (addOns.isNotEmpty()) {
                 bf.append("&addon=").append(URLEncoder.encode(StringUtils.join(addOns, ","), "UTF-8"))
             }
-            myUrl = bf.toString()
-            myJson = Http.get(URL(myUrl))
-            val parser = JsonParser()
-            return parser.parse(myJson).getAsJsonObject()
+            val myUrl = bf.toString()
+            val myJson = Http[URL(myUrl)]
+            return JsonParser.parseString(myJson).asJsonObject
         } catch (ex: IllegalArgumentException) {
             throw ex
         } catch (ex2: Exception) {
@@ -118,8 +115,6 @@ class IP2LocationWebService {
     @Throws(IllegalArgumentException::class, RuntimeException::class)
     fun getCredit(): JsonObject {
         try {
-            var myUrl: String
-            var myJson: String
             checkParams() // check here in case user haven't called Open yet
             val bf = StringBuffer()
             bf.append("http")
@@ -127,10 +122,9 @@ class IP2LocationWebService {
                 bf.append("s")
             }
             bf.append("://api.ip2location.com/v2/?key=").append(key).append("&check=true")
-            myUrl = bf.toString()
-            myJson = Http.get(URL(myUrl))
-            val parser = JsonParser()
-            return parser.parse(myJson).getAsJsonObject()
+            val myUrl = bf.toString()
+            val myJson: String = Http[URL(myUrl)]
+            return JsonParser.parseString(myJson).asJsonObject
         } catch (ex: IllegalArgumentException) {
             throw ex
         } catch (ex2: Exception) {

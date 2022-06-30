@@ -1,4 +1,7 @@
-import com.google.gson.JsonObject
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+// import com.google.gson.JsonObject
 
 object Main {
     @JvmStatic
@@ -8,10 +11,16 @@ object Main {
 
             // querying with the BIN file
             val dbPath = "./IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY.BIN"
-            val useMMF = true
-
             val loc = IP2Location()
+
+            // this is to initialize with a BIN file
+            val useMMF = true
             loc.open(dbPath, useMMF)
+
+            // this is to initialize with byte array
+            // val binPath: Path = Paths.get(dbPath)
+            // val binFileBytes = Files.readAllBytes(binPath)
+            // loc.open(binFileBytes)
 
             val rec = loc.ipQuery(strIPAddress)
 

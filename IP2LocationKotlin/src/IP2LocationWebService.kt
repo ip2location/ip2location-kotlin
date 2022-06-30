@@ -18,10 +18,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2021 IP2Location.com
+ * Copyright (c) 2002-2022 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.1.0
+ * @version 8.2.0
  */
 class IP2LocationWebService {
     private var key = ""

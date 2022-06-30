@@ -21,6 +21,7 @@ Below are the functions supported in this module.
 |---|---|
 |open(DBPath: String, UseMMF: Boolean)|Initialize the component with the BIN file path and whether to use MemoryMappedFile.|
 |open(DBPath: String)|Initialize the component with the BIN file path.|
+|open(db: ByteArray)|Initialize the component with a byte array containing the BIN file data.|
 |ipQuery(IPAddress: String?)|Query IP address. This function returns results in the IPResult object.|
 |close()|Destroys the mapped bytes.|
 
@@ -69,6 +70,9 @@ Below are the status codes.
 ```kotlin
 import kotlin.jvm.JvmStatic
 import java.lang.Exception
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 object Main {
     @JvmStatic
@@ -78,10 +82,17 @@ object Main {
 
             // querying with the BIN file
             val dbPath = "/usr/data/IP-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY.BIN"
-            val useMMF = true
 
             var loc = IP2Location()
+
+            // this is to initialize with a BIN file
+            val useMMF = true
             loc.open(dbPath, useMMF)
+
+            // this is to initialize with byte array
+            // val binPath: Path = Paths.get(dbPath)
+            // val binFileBytes = Files.readAllBytes(binPath)
+            // loc.open(binFileBytes)
 
             var rec = loc.ipQuery(strIPAddress)
 

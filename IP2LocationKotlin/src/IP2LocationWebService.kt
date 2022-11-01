@@ -21,7 +21,7 @@ import java.util.regex.Pattern
  * Copyright (c) 2002-2022 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.2.0
+ * @version 8.3.0
  */
 class IP2LocationWebService {
     private var key = ""

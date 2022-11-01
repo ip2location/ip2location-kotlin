@@ -284,3 +284,136 @@ object Main {
     }
 }
 ```
+
+## IPTOOLS CLASS
+
+## Methods
+Below are the methods supported in this class.
+
+|Method Name|Description|
+|---|---|
+|isIPV4(IPAddress: String?)|Returns true if string contains an IPv4 address. Otherwise false.|
+|isIPV6(IPAddress: String?)|Returns true if string contains an IPv6 address. Otherwise false.|
+|ipV4ToDecimal(IPAddress: String?)|Returns the IP number for an IPv4 address.|
+|ipV6ToDecimal(IPAddress: String?)|Returns the IP number for an IPv6 address.|
+|decimalToIPV4(IPNum: BigInteger)|Returns the IPv4 address for the supplied IP number.|
+|decimalToIPV6(IPNum: BigInteger)|Returns the IPv6 address for the supplied IP number.|
+|compressIPV6(IPAddress: String?)|Returns the IPv6 address in compressed form.|
+|expandIPV6(IPAddress: String?)|Returns the IPv6 address in expanded form.|
+|ipV4ToCIDR(IPFrom: String?, IPTo: String?)|Returns a list of CIDR from the supplied IPv4 range.|
+|ipV6ToCIDR(IPFrom: String, IPTo: String?)|Returns a list of CIDR from the supplied IPv6 range.|
+|cIDRToIPV4(CIDR: String)|Returns the IPv4 range from the supplied CIDR.|
+|cIDRToIPV6(CIDR: String)|Returns the IPv6 range from the supplied CIDR.|
+
+## Usage
+
+```kotlin
+object Main {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        try {
+            val tools = IPTools()
+
+            println(tools.isIPV4("60.54.166.38"))
+            println(tools.isIPV6("2600:1f18:45b0:5b00:f5d8:4183:7710:ceec"))
+            println(tools.ipV4ToDecimal("60.54.166.38"))
+            println(tools.ipV6ToDecimal("2600:118:450:5b00:f5d8:4183:7710:ceec"))
+            println(tools.decimalToIPV4(BigInteger("1010214438")))
+            println(tools.decimalToIPV4(BigInteger("770")))
+            println(tools.decimalToIPV6(BigInteger("50510686025047391022278667396705210092")))
+            println(tools.decimalToIPV6(BigInteger("977677717377287979008")))
+            println(tools.ipV4ToDecimal("0.0.166.38"))
+
+            println(tools.compressIPV6("0000:0000:0000:0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("::0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("0120:F000:0000:0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("0120:F000:0002:0035:0090:FFFF:0000:0000"))
+            println(tools.compressIPV6("::"))
+            println(tools.compressIPV6("233::"))
+            println(tools.compressIPV6("::233:0:0"))
+            println(tools.compressIPV6("00FF:0E00:2000:0035:0009:FFFF:10:0000"))
+            println(tools.expandIPV6(tools.compressIPV6("0500:6001:00FE:35:0000:FFFF:0000:0000")))
+            val stuff = tools.ipV4ToCIDR("10.0.0.0", "10.10.2.255")
+            stuff?.forEach(System.out::println)
+
+            val stuff2 =
+                tools.ipV6ToCIDR("2001:4860:4860:0000:0000:0000:0000:8888", "2001:4860:4860:0000:eeee:ffff:ffff:ffff")
+            stuff2?.forEach(System.out::println)
+
+            val stuff3 = tools.cIDRToIPV4("10.123.80.0/12")
+            stuff3?.forEach(System.out::println)
+            val stuff4 = tools.cIDRToIPV6("2002:1234::abcd:ffff:c0a8:101/62")
+            stuff4?.forEach(System.out::println)
+        } catch (e: Exception) {
+            println(e)
+            //e.printStackTrace(System.out)
+            throw e
+        }
+    }
+}
+```
+
+## COUNTRY CLASS
+
+## Methods
+Below are the methods supported in this class.
+
+|Method Name|Description|
+|---|---|
+|Constructor(CSVFile)|Expect a IP2Location Country Information CSV file. This database is free for download at https://www.ip2location.com/free/country-information|
+|getCountryInfo(CountryCode: String?)|Returns the country information.|
+|getCountryInfo()|Returns all countries' information.|
+
+## Usage
+
+```kotlin
+object Main {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        try {
+            val cc = Country("./IP2LOCATION-COUNTRY-INFORMATION.CSV")
+
+            val ccResult: Map<String, String?>? = cc.getCountryInfo("US")
+            println(ccResult.toString())
+
+            val ccResults: List<Map<String, String?>> = cc.getCountryInfo()
+            println(ccResults.toString())
+        } catch (e: Exception) {
+            println(e)
+            //e.printStackTrace(System.out)
+            throw e
+        }
+    }
+}
+```
+
+## REGION CLASS
+
+## Methods
+Below are the methods supported in this class.
+
+|Method Name|Description|
+|---|---|
+|Constructor(CSVFile)|Expect a IP2Location ISO 3166-2 Subdivision Code CSV file. This database is free for download at https://www.ip2location.com/free/iso3166-2|
+|getRegionCode(CountryCode: String?, RegionName: String)|Returns the region code for the supplied country code and region name.|
+
+## Usage
+
+```kotlin
+object Main {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        try {
+            val reg = Region("./IP2LOCATION-ISO3166-2.CSV")
+
+            val regionCode: String? = reg.getRegionCode("US", "California")
+
+            println(regionCode)
+        } catch (e: Exception) {
+            println(e)
+            //e.printStackTrace(System.out)
+            throw e
+        }
+    }
+}
+```

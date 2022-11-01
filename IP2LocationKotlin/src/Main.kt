@@ -1,12 +1,10 @@
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 // import com.google.gson.JsonObject
 
 object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         try {
+            /*
             val strIPAddress = "221.121.146.0"
 
             // querying with the BIN file
@@ -33,6 +31,7 @@ object Main {
                 else -> println("Unknown error." + rec.status)
             }
             loc.close()
+            */
 
             /*
             // querying with the web service
@@ -154,6 +153,58 @@ object Main {
                 println("Credit balance: " + myResult["response"].asString)
             }
             */
+
+            /*
+            val tools = IPTools()
+
+            println(tools.isIPV4("60.54.166.38"))
+            println(tools.isIPV6("2600:1f18:45b0:5b00:f5d8:4183:7710:ceec"))
+            println(tools.ipV4ToDecimal("60.54.166.38"))
+            println(tools.ipV6ToDecimal("2600:118:450:5b00:f5d8:4183:7710:ceec"))
+            println(tools.decimalToIPV4(BigInteger("1010214438")))
+            println(tools.decimalToIPV4(BigInteger("770")))
+            println(tools.decimalToIPV6(BigInteger("50510686025047391022278667396705210092")))
+            println(tools.decimalToIPV6(BigInteger("977677717377287979008")))
+            println(tools.ipV4ToDecimal("0.0.166.38"))
+
+            println(tools.compressIPV6("0000:0000:0000:0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("::0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("0120:F000:0000:0035:0000:FFFF:0000:0000"))
+            println(tools.compressIPV6("0120:F000:0002:0035:0090:FFFF:0000:0000"))
+            println(tools.compressIPV6("::"))
+            println(tools.compressIPV6("233::"))
+            println(tools.compressIPV6("::233:0:0"))
+            println(tools.compressIPV6("00FF:0E00:2000:0035:0009:FFFF:10:0000"))
+            println(tools.expandIPV6(tools.compressIPV6("0500:6001:00FE:35:0000:FFFF:0000:0000")))
+            val stuff = tools.ipV4ToCIDR("10.0.0.0", "10.10.2.255")
+            stuff?.forEach(System.out::println)
+
+            val stuff2 =
+                tools.ipV6ToCIDR("2001:4860:4860:0000:0000:0000:0000:8888", "2001:4860:4860:0000:eeee:ffff:ffff:ffff")
+            stuff2?.forEach(System.out::println)
+
+            val stuff3 = tools.cIDRToIPV4("10.123.80.0/12")
+            stuff3?.forEach(System.out::println)
+            val stuff4 = tools.cIDRToIPV6("2002:1234::abcd:ffff:c0a8:101/62")
+            stuff4?.forEach(System.out::println)
+            */
+
+            val cc = Country("./IP2LOCATION-COUNTRY-INFORMATION.CSV")
+
+            val ccResult: Map<String, String?>? = cc.getCountryInfo("US")
+
+            println(ccResult.toString())
+
+            val ccResults: List<Map<String, String?>> = cc.getCountryInfo()
+
+            println(ccResults.toString())
+
+            val reg = Region("./IP2LOCATION-ISO3166-2.CSV")
+
+            val regionCode: String? = reg.getRegionCode("US", "California")
+
+            println(regionCode)
+
         } catch (e: Exception) {
             println(e)
             //e.printStackTrace(System.out)

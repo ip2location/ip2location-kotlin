@@ -4,7 +4,7 @@
  * Copyright (c) 2002-2022 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.2.0
+ * @version 8.3.0
  */
 class IPResult internal constructor(private var IPAddress: String) {
     var ipAddress: String? = IPAddress
@@ -31,7 +31,7 @@ class IPResult internal constructor(private var IPAddress: String) {
     var addressType: String? = null
     var category: String? = null
     var status: String? = null
-    var version = "Version 8.2.0"
+    var version = "Version 8.3.0"
 
     /**
      * This method to return all the fields.

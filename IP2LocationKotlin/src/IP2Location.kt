@@ -29,10 +29,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2022 IP2Location.com
+ * Copyright (c) 2002-2023 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.3.0
+ * @version 8.4.0
  */
 class IP2Location {
     private var metaData: MetaData? = null
@@ -81,6 +81,9 @@ class IP2Location {
     private var usageTypePositionOffset = 0
     private var addressTypePositionOffset = 0
     private var categoryPositionOffset = 0
+    private var districtPositionOffset = 0
+    private var aSNPositionOffset = 0
+    private var aSPositionOffset = 0
     private var countryEnabled = false
     private var regionEnabled = false
     private var cityEnabled = false
@@ -102,6 +105,9 @@ class IP2Location {
     private var usageTypeEnabled = false
     private var addressTypeEnabled = false
     private var categoryEnabled = false
+    private var districtEnabled = false
+    private var aSNEnabled = false
+    private var aSEnabled = false
 
     internal interface FileLike {
         interface Supplier {
@@ -336,6 +342,9 @@ class IP2Location {
                 addressTypePositionOffset =
                     if (ADDRESSTYPE_POSITION[dbType] != 0) ADDRESSTYPE_POSITION[dbType] - 2 shl 2 else 0
                 categoryPositionOffset = if (CATEGORY_POSITION[dbType] != 0) CATEGORY_POSITION[dbType] - 2 shl 2 else 0
+                districtPositionOffset = if (DISTRICT_POSITION[dbType] != 0) DISTRICT_POSITION[dbType] - 2 shl 2 else 0
+                aSNPositionOffset = if (ASN_POSITION[dbType] != 0) ASN_POSITION[dbType] - 2 shl 2 else 0
+                aSPositionOffset = if (AS_POSITION[dbType] != 0) AS_POSITION[dbType] - 2 shl 2 else 0
                 countryEnabled = COUNTRY_POSITION[dbType] != 0
                 regionEnabled = REGION_POSITION[dbType] != 0
                 cityEnabled = CITY_POSITION[dbType] != 0
@@ -357,6 +366,9 @@ class IP2Location {
                 usageTypeEnabled = USAGETYPE_POSITION[dbType] != 0
                 addressTypeEnabled = ADDRESSTYPE_POSITION[dbType] != 0
                 categoryEnabled = CATEGORY_POSITION[dbType] != 0
+                districtEnabled = DISTRICT_POSITION[dbType] != 0
+                aSNEnabled = ASN_POSITION[dbType] != 0
+                aSEnabled = AS_POSITION[dbType] != 0
                 if (metaData!!.indexed) {
                     var readLen: Int = indexArrayIPV4.size
                     if (metaData!!.indexedIPV6) {
@@ -676,6 +688,24 @@ class IP2Location {
                         record.category = readStr(position, myDataBuffer, fileHandle)
                     } else {
                         record.category = IPResult.NOT_SUPPORTED
+                    }
+                    if (districtEnabled) {
+                        position = read32Row(row, districtPositionOffset).toLong()
+                        record.district = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.district = IPResult.NOT_SUPPORTED
+                    }
+                    if (aSNEnabled) {
+                        position = read32Row(row, aSNPositionOffset).toLong()
+                        record.aSN = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.aSN = IPResult.NOT_SUPPORTED
+                    }
+                    if (aSEnabled) {
+                        position = read32Row(row, aSPositionOffset).toLong()
+                        record.aS = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.aS = IPResult.NOT_SUPPORTED
                     }
                     record.status = "OK"
                     break
@@ -1105,46 +1135,52 @@ class IP2Location {
         private val TO_TEREDO = BigInteger("42540488241204005274814694018844196863")
         private val LAST_32BITS = BigInteger("4294967295")
         private val COUNTRY_POSITION =
-            intArrayOf(0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
+            intArrayOf(0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2)
         private val REGION_POSITION =
-            intArrayOf(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
+            intArrayOf(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
         private val CITY_POSITION =
-            intArrayOf(0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)
+            intArrayOf(0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)
         private val ISP_POSITION =
-            intArrayOf(0, 0, 3, 0, 5, 0, 7, 5, 7, 0, 8, 0, 9, 0, 9, 0, 9, 0, 9, 7, 9, 0, 9, 7, 9, 9)
+            intArrayOf(0, 0, 3, 0, 5, 0, 7, 5, 7, 0, 8, 0, 9, 0, 9, 0, 9, 0, 9, 7, 9, 0, 9, 7, 9, 9, 9)
         private val LATITUDE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 5, 5, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5)
+            intArrayOf(0, 0, 0, 0, 0, 5, 5, 0, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5)
         private val LONGITUDE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 6, 6, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)
+            intArrayOf(0, 0, 0, 0, 0, 6, 6, 0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)
         private val DOMAIN_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 9, 0, 10, 0, 10, 0, 10, 0, 10, 8, 10, 0, 10, 8, 10, 10)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 6, 8, 0, 9, 0, 10, 0, 10, 0, 10, 0, 10, 8, 10, 0, 10, 8, 10, 10, 10)
         private val ZIPCODE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 7, 0, 7, 7, 7, 0, 7, 7)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 7, 0, 7, 7, 7, 0, 7, 7, 7)
         private val TIMEZONE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 7, 8, 8, 8, 7, 8, 0, 8, 8, 8, 0, 8, 8)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 7, 8, 8, 8, 7, 8, 0, 8, 8, 8, 0, 8, 8, 8)
         private val NETSPEED_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 0, 11, 8, 11, 0, 11, 0, 11, 0, 11, 11)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 0, 11, 8, 11, 0, 11, 0, 11, 0, 11, 11, 11)
         private val IDDCODE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 12, 0, 12, 0, 12, 9, 12, 0, 12, 12)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 12, 0, 12, 0, 12, 9, 12, 0, 12, 12, 12)
         private val AREACODE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 0, 13, 0, 13, 10, 13, 0, 13, 13)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 13, 0, 13, 0, 13, 10, 13, 0, 13, 13, 13)
         private val WEATHERSTATIONCODE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 14, 0, 14, 0, 14, 0, 14, 14)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 14, 0, 14, 0, 14, 0, 14, 14, 14)
         private val WEATHERSTATIONNAME_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 0, 15, 0, 15, 0, 15, 15)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 0, 15, 0, 15, 0, 15, 15, 15)
         private val MCC_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 16, 0, 16, 9, 16, 16)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 16, 0, 16, 9, 16, 16, 16)
         private val MNC_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 17, 0, 17, 10, 17, 17)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 17, 0, 17, 10, 17, 17, 17)
         private val MOBILEBRAND_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 18, 0, 18, 11, 18, 18)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 18, 0, 18, 11, 18, 18, 18)
         private val ELEVATION_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 19, 0, 19, 19)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 19, 0, 19, 19, 19)
         private val USAGETYPE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 20, 20)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 20, 20, 20)
         private val ADDRESSTYPE_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 21)
         private val CATEGORY_POSITION =
-            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22)
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 22, 22)
+        private val DISTRICT_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23)
+        private val ASN_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24)
+        private val AS_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25)
     }
 }

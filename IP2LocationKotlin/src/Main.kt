@@ -4,11 +4,10 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         try {
-            /*
             val strIPAddress = "221.121.146.0"
 
             // querying with the BIN file
-            val dbPath = "./IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY.BIN"
+            val dbPath = "./IPV6-COUNTRY-REGION-CITY-LATITUDE-LONGITUDE-ZIPCODE-TIMEZONE-ISP-DOMAIN-NETSPEED-AREACODE-WEATHER-MOBILE-ELEVATION-USAGETYPE-ADDRESSTYPE-CATEGORY-DISTRICT-ASN.BIN"
             val loc = IP2Location()
 
             // this is to initialize with a BIN file
@@ -31,7 +30,6 @@ object Main {
                 else -> println("Unknown error." + rec.status)
             }
             loc.close()
-            */
 
             /*
             // querying with the web service
@@ -189,6 +187,7 @@ object Main {
             stuff4?.forEach(System.out::println)
             */
 
+            /*
             val cc = Country("./IP2LOCATION-COUNTRY-INFORMATION.CSV")
 
             val ccResult: Map<String, String?>? = cc.getCountryInfo("US")
@@ -204,6 +203,7 @@ object Main {
             val regionCode: String? = reg.getRegionCode("US", "California")
 
             println(regionCode)
+             */
 
         } catch (e: Exception) {
             println(e)

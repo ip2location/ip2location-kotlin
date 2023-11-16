@@ -9,7 +9,7 @@ import java.io.IOException
  * Copyright (c) 2002-2023 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.0
+ * @version 8.4.1
  */
 class Region(CSVFile: String) {
     private val records: MutableMap<String?, MutableList<Map<String, String?>>> = HashMap()

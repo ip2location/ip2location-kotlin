@@ -32,7 +32,7 @@ import java.util.regex.Pattern
  * Copyright (c) 2002-2023 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.0
+ * @version 8.4.1
  */
 class IP2Location {
     private var metaData: MetaData? = null

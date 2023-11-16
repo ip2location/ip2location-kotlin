@@ -1,6 +1,7 @@
+import org.apache.commons.lang3.StringUtils
+import java.math.BigInteger
 import java.net.Inet4Address
 import java.net.Inet6Address
-import java.math.BigInteger
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.*
@@ -31,7 +32,7 @@ import kotlin.math.pow
  * Copyright (c) 2002-2023 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.0
+ * @version 8.4.1
  */
 class IPTools {
     /**
@@ -410,7 +411,7 @@ class IPTools {
      * @throws UnknownHostException If unable to convert byte array to IP address
      */
     @Throws(UnknownHostException::class)
-    fun cIDRToIPV6(CIDR: String): Array<String>? {
+    fun cIDRToIPV6(CIDR: String): Array<String?>? {
         if (!CIDR.contains("/")) {
             return null
         }
@@ -422,35 +423,29 @@ class IPTools {
         }
         ip = arr[0]
         prefix = arr[1].toInt()
-        var hexStartAddress = expandIPV6(ip)!!.replace(":".toRegex(), "")
-        var hexEndAddress = hexStartAddress
-        var bits = 128 - prefix
-        var x: Int
-        var y: String
-        var pos = 31
-        var values: List<Int>?
-        var tmp: CharArray
-        while (bits > 0) {
-            values = listOf(4, bits)
-            x = hexEndAddress[pos].toString().toInt(16)
-            y = String.format(
-                "%x", x or (2.0.pow(
-                    Collections.min(values)
-                        .toDouble()
-                ) - 1).toInt()
-            ) // single hex char
 
-            // replace char
-            tmp = hexEndAddress.toCharArray()
-            tmp[pos] = y[0]
-            hexEndAddress = String(tmp)
-            bits -= 4
-            pos -= 1
+        val parts: List<String>? = expandIPV6(ip)?.split(":")
+
+        val bitStart: String = StringUtils.repeat('1', prefix) + StringUtils.repeat('0', 128 - prefix)
+        val bitEnd: String = StringUtils.repeat('0', prefix) + StringUtils.repeat('1', 128 - prefix)
+
+        val chunkSize = 16
+
+        val floors: Array<String> =
+            bitStart.split("(?<=\\G.{$chunkSize})".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val ceilings: Array<String> =
+            bitEnd.split("(?<=\\G.{$chunkSize})".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+
+        val startIP: ArrayList<String> = ArrayList(8)
+        val endIP: ArrayList<String> = ArrayList(8)
+
+        for (x in 0..7) {
+            startIP.add(Integer.toHexString((parts?.get(x)?.toInt(16) ?: 0) and floors[x].toInt(2)))
+            endIP.add(Integer.toHexString((parts?.get(x)?.toInt(16) ?: 0) or ceilings[x].toInt(2)))
         }
-        hexStartAddress = hexStartAddress.replace("(.{4})".toRegex(), "$1:")
-        hexStartAddress = hexStartAddress.substring(0, hexStartAddress.length - 1)
-        hexEndAddress = hexEndAddress.replace("(.{4})".toRegex(), "$1:")
-        hexEndAddress = hexEndAddress.substring(0, hexEndAddress.length - 1)
+
+        val hexStartAddress: String? = expandIPV6(StringUtils.join(startIP, ":"))
+        val hexEndAddress: String? = expandIPV6(StringUtils.join(endIP, ":"))
         return arrayOf(hexStartAddress, hexEndAddress)
     }
 

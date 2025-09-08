@@ -29,10 +29,10 @@ import kotlin.math.pow
  *  * Converts CIDR to IPv4 range
  *  * Converts CIDR to IPv6 range
  *
- * Copyright (c) 2002-2023 IP2Location.com
+ * Copyright (c) 2002-2025 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.1
+ * @version 8.5.0
  */
 class IPTools {
     /**

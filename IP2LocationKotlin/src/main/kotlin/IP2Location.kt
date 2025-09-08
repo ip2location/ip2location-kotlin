@@ -29,10 +29,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2023 IP2Location.com
+ * Copyright (c) 2002-2025 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.1
+ * @version 8.5.0
  */
 class IP2Location {
     private var metaData: MetaData? = null
@@ -84,6 +84,9 @@ class IP2Location {
     private var districtPositionOffset = 0
     private var aSNPositionOffset = 0
     private var aSPositionOffset = 0
+    private var aSDomainPositionOffset = 0
+    private var aSUsageTypePositionOffset = 0
+    private var aSCIDRPositionOffset = 0
     private var countryEnabled = false
     private var regionEnabled = false
     private var cityEnabled = false
@@ -108,6 +111,9 @@ class IP2Location {
     private var districtEnabled = false
     private var aSNEnabled = false
     private var aSEnabled = false
+    private var aSDomainEnabled = false
+    private var aSUsageTypeEnabled = false
+    private var aSCIDREnabled = false
 
     internal interface FileLike {
         interface Supplier {
@@ -345,6 +351,9 @@ class IP2Location {
                 districtPositionOffset = if (DISTRICT_POSITION[dbType] != 0) DISTRICT_POSITION[dbType] - 2 shl 2 else 0
                 aSNPositionOffset = if (ASN_POSITION[dbType] != 0) ASN_POSITION[dbType] - 2 shl 2 else 0
                 aSPositionOffset = if (AS_POSITION[dbType] != 0) AS_POSITION[dbType] - 2 shl 2 else 0
+                aSDomainPositionOffset = if (ASDOMAIN_POSITION[dbType] != 0) ASDOMAIN_POSITION[dbType] - 2 shl 2 else 0
+                aSUsageTypePositionOffset = if (ASUSAGETYPE_POSITION[dbType] != 0) ASUSAGETYPE_POSITION[dbType] - 2 shl 2 else 0
+                aSCIDRPositionOffset = if (ASCIDR_POSITION[dbType] != 0) ASCIDR_POSITION[dbType] - 2 shl 2 else 0
                 countryEnabled = COUNTRY_POSITION[dbType] != 0
                 regionEnabled = REGION_POSITION[dbType] != 0
                 cityEnabled = CITY_POSITION[dbType] != 0
@@ -369,6 +378,9 @@ class IP2Location {
                 districtEnabled = DISTRICT_POSITION[dbType] != 0
                 aSNEnabled = ASN_POSITION[dbType] != 0
                 aSEnabled = AS_POSITION[dbType] != 0
+                aSDomainEnabled = ASDOMAIN_POSITION[dbType] != 0
+                aSUsageTypeEnabled = ASUSAGETYPE_POSITION[dbType] != 0
+                aSCIDREnabled = ASCIDR_POSITION[dbType] != 0
                 if (metaData!!.indexed) {
                     var readLen: Int = indexArrayIPV4.size
                     if (metaData!!.indexedIPV6) {
@@ -706,6 +718,24 @@ class IP2Location {
                         record.aS = readStr(position, myDataBuffer, fileHandle)
                     } else {
                         record.aS = IPResult.NOT_SUPPORTED
+                    }
+                    if (aSDomainEnabled) {
+                        position = read32Row(row, aSDomainPositionOffset).toLong()
+                        record.aSDomain = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.aSDomain = IPResult.NOT_SUPPORTED
+                    }
+                    if (aSUsageTypeEnabled) {
+                        position = read32Row(row, aSUsageTypePositionOffset).toLong()
+                        record.aSUsageType = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.aSUsageType = IPResult.NOT_SUPPORTED
+                    }
+                    if (aSCIDREnabled) {
+                        position = read32Row(row, aSCIDRPositionOffset).toLong()
+                        record.aSCIDR = readStr(position, myDataBuffer, fileHandle)
+                    } else {
+                        record.aSCIDR = IPResult.NOT_SUPPORTED
                     }
                     record.status = "OK"
                     break
@@ -1182,5 +1212,11 @@ class IP2Location {
             intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24)
         private val AS_POSITION =
             intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25)
+        private val ASDOMAIN_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 26)
+        private val ASUSAGETYPE_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 27)
+        private val ASCIDR_POSITION =
+            intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28)
     }
 }

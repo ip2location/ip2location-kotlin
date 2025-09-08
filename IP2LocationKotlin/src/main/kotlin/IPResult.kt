@@ -1,10 +1,10 @@
 /**
  * This class is used to store the geolocation data that is returned by the IP2Location class.
  *
- * Copyright (c) 2002-2023 IP2Location.com
+ * Copyright (c) 2002-2025 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.4.1
+ * @version 8.5.0
  */
 class IPResult internal constructor(private var IPAddress: String) {
     var ipAddress: String? = IPAddress
@@ -33,8 +33,11 @@ class IPResult internal constructor(private var IPAddress: String) {
     var district: String? = null
     var aSN: String? = null
     var aS: String? = null
+    var aSDomain: String? = null
+    var aSUsageType: String? = null
+    var aSCIDR: String? = null
     var status: String? = null
-    var version = "Version 8.4.1"
+    var version = "Version 8.5.0"
 
     /**
      * This method to return all the fields.
@@ -69,6 +72,9 @@ class IPResult internal constructor(private var IPAddress: String) {
         buf.append("\tDistrict = " + district + nL)
         buf.append("\tASN = " + aSN + nL)
         buf.append("\tAS = " + aS + nL)
+        buf.append("\tASDomain = " + aSDomain + nL)
+        buf.append("\tASUsageType = " + aSUsageType + nL)
+        buf.append("\tASCIDR = " + aSCIDR + nL)
         return buf.toString()
     }
 

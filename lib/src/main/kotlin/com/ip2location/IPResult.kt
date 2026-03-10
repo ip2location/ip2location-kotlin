@@ -1,10 +1,12 @@
+package com.ip2location
+
 /**
  * This class is used to store the geolocation data that is returned by the IP2Location class.
  *
- * Copyright (c) 2002-2025 IP2Location.com
+ * Copyright (c) 2002-2026 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.5.0
+ * @version 8.6.0
  */
 class IPResult internal constructor(private var IPAddress: String) {
     var ipAddress: String? = IPAddress
@@ -37,7 +39,7 @@ class IPResult internal constructor(private var IPAddress: String) {
     var aSUsageType: String? = null
     var aSCIDR: String? = null
     var status: String? = null
-    var version = "Version 8.5.0"
+    var version = "Version 8.6.0"
 
     /**
      * This method to return all the fields.

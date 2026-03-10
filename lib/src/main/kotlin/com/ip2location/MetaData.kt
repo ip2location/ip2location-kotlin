@@ -1,3 +1,5 @@
+package com.ip2location
+
 internal class MetaData {
     var baseAddr = 0
     var dbCount = 0

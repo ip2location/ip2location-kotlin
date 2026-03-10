@@ -1,50 +1,44 @@
+package com.ip2location
+
 import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
 
 /**
- * This class parses country information CSV and returns the country information.
+ * This class parses region information CSV and returns the region code.
  *
- * Copyright (c) 2002-2025 IP2Location.com
+ * Copyright (c) 2002-2026 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.5.0
+ * @version 8.6.0
  */
-class Country(CSVFile: String) {
-    private val records: MutableMap<String?, Map<String, String?>> = HashMap()
+class Region(CSVFile: String) {
+    private val records: MutableMap<String?, MutableList<Map<String, String?>>> = HashMap()
 
     /**
-     * This function gets the country information for the supplied country code.
+     * This function gets the region code for the supplied country code and region name.
      *
      * @param CountryCode ISO-3166 country code
-     * @return Map
+     * @param RegionName  Region name
+     * @return String
      */
     @Throws(IOException::class)
-    fun getCountryInfo(CountryCode: String?): Map<String, String?>? {
-        return if (records.isEmpty()) {
-            throw IOException("No record available.")
-        } else {
-            records.getOrDefault(CountryCode, null)
-        }
-    }
-
-    /**
-     * This function gets the country information for all countries.
-     *
-     * @return List
-     */
-    @Throws(IOException::class)
-    fun getCountryInfo(): List<Map<String, String?>> {
-        val results: MutableList<Map<String, String?>> = ArrayList()
+    fun getRegionCode(CountryCode: String?, RegionName: String): String? {
         if (records.isEmpty()) {
             throw IOException("No record available.")
         } else {
-            for ((_, value) in records) {
-                results.add(value)
+            if (!records.containsKey(CountryCode)) {
+                return null
+            }
+            val items: MutableList<Map<String, String?>>? = records[CountryCode]
+            for (item in items!!) {
+                if (item["name"].equals(RegionName, ignoreCase = true)) {
+                    return item["code"]
+                }
             }
         }
-        return results
+        return null
     }
 
     private fun readCSV(fr: FileReader): List<MutableList<String>> =
@@ -59,7 +53,7 @@ class Country(CSVFile: String) {
         }.toList()
 
     /**
-     * This constructor reads the country information CSV and store the parsed info.
+     * This constructor reads the region information CSV and store the parsed info.
      */
     init {
         val file = File(CSVFile)
@@ -74,16 +68,17 @@ class Country(CSVFile: String) {
         val data = readCSV(fr)
         for ((x, row) in data.withIndex()) {
             if (x == 0) {
-                var gotCountryCode = false
+                var gotSubDivisionName = false
                 for ((y, col) in row.withIndex()) {
-                    val col2 = col.trim('"')
-                    if (col2 == "country_code") {
-                        gotCountryCode = true
+                    var col2 = col.trim('"')
+                    if (col2 == "subdivision_name") {
+                        gotSubDivisionName = true
+                        col2 = "name"
                     }
                     header.add(y, col2)
                 }
-                if (!gotCountryCode) {
-                    throw IOException("Invalid country information CSV file.")
+                if (!gotSubDivisionName) {
+                    throw IOException("Invalid region information CSV file.")
                 }
             } else {
                 val dataRow: MutableMap<String, String> = mutableMapOf()
@@ -94,8 +89,12 @@ class Country(CSVFile: String) {
                     }
                     dataRow[header[y]] = col
                 }
-                records[countryCode] = dataRow
+                if (!records.containsKey(countryCode)) {
+                    records[countryCode] = mutableListOf()
+                }
+                records[countryCode]!!.add(dataRow)
             }
         }
+
     }
 }

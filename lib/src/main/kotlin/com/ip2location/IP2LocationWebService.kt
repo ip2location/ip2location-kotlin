@@ -1,3 +1,5 @@
+package com.ip2location
+
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import java.net.URL
@@ -18,10 +20,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2025 IP2Location.com
+ * Copyright (c) 2002-2026 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.5.0
+ * @version 8.6.0
  */
 class IP2LocationWebService {
     private var key = ""

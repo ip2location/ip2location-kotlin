@@ -1,3 +1,5 @@
+package com.ip2location
+
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -29,10 +31,10 @@ import java.util.regex.Pattern
  *  * Geo-targeting for increased sales and click-through
  *  * And much, much more!
  *
- * Copyright (c) 2002-2025 IP2Location.com
+ * Copyright (c) 2002-2026 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.5.0
+ * @version 8.6.0
  */
 class IP2Location {
     private var metaData: MetaData? = null
@@ -467,7 +469,7 @@ class IP2Location {
                     record.ipAddress = retArr[0] // return after expand IPv6 format
                     myIPType = retArr[1].toInt() // special cases
                 }
-            } catch (e: UnknownHostException) {
+            } catch (_: UnknownHostException) {
                 record.status = "INVALID_IP_ADDRESS"
                 return record
             }
@@ -554,7 +556,7 @@ class IP2Location {
                     ipTo = if (overCapacity) BigInteger.ZERO else read32Or128Row(fullRow, myColumnSize, firstCol)
                 }
 
-                if (ipNo >= ipFrom && ipNo < ipTo) {
+                if (ipNo in ipFrom..<ipTo) {
 
                     val rowLen: Int = myColumnSize - firstCol
 
@@ -757,7 +759,7 @@ class IP2Location {
         val tmp = "0000:0000:0000:0000:0000:"
         val padMe = "0000"
         val hexOffset: Long = 0xFF
-        var myIP2 = myIP.toUpperCase()
+        var myIP2 = myIP.uppercase(Locale.getDefault())
         var retType = myIPType.toString()
 
         // expand ipv4-mapped ipv6
@@ -815,7 +817,7 @@ class IP2Location {
                     bf.append(":")
                     bf.append(padMe.substring(part2Hex.length))
                     bf.append(part2Hex)
-                    myIP2 = bf.toString().toUpperCase()
+                    myIP2 = bf.toString().uppercase(Locale.getDefault())
                     val myArr = myIP2.split("::".toRegex()).toTypedArray()
                     val leftSide = myArr[0].split(":".toRegex()).toTypedArray()
                     val bf2 = StringBuffer(40)
@@ -932,7 +934,7 @@ class IP2Location {
     private fun convertFloat(myStr: String?): Float {
         return try {
             myStr!!.toFloat()
-        } catch (e: NumberFormatException) {
+        } catch (_: NumberFormatException) {
             0.0f
         }
     }
@@ -1062,7 +1064,7 @@ class IP2Location {
                 len = data[0].toInt()
                 buf = ByteArray(len)
                 System.arraycopy(data, 1, buf, 0, len)
-            } catch (e: NegativeArraySizeException) {
+            } catch (_: NegativeArraySizeException) {
                 return null
             }
         } else {
@@ -1072,7 +1074,7 @@ class IP2Location {
                 len = data[0].toInt()
                 buf = ByteArray(len)
                 System.arraycopy(data, 1, buf, 0, len)
-            } catch (e: NegativeArraySizeException) {
+            } catch (_: NegativeArraySizeException) {
                 return null
             }
         }

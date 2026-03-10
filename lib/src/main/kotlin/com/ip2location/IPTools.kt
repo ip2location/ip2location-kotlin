@@ -1,3 +1,5 @@
+package com.ip2location
+
 import org.apache.commons.lang3.StringUtils
 import java.math.BigInteger
 import java.net.Inet4Address
@@ -6,6 +8,7 @@ import java.net.InetAddress
 import java.net.UnknownHostException
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.iterator
 import kotlin.math.floor
 import kotlin.math.ln
 import kotlin.math.pow
@@ -29,10 +32,10 @@ import kotlin.math.pow
  *  * Converts CIDR to IPv4 range
  *  * Converts CIDR to IPv6 range
  *
- * Copyright (c) 2002-2025 IP2Location.com
+ * Copyright (c) 2002-2026 IP2Location.com
  *
  * @author IP2Location.com
- * @version 8.5.0
+ * @version 8.6.0
  */
 class IPTools {
     /**

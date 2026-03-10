@@ -12,6 +12,9 @@ download the BIN database at
 ## Requirements ##
 Intellij IDEA: <https://www.jetbrains.com/idea/>
 
+## Installation ##
+IP2Location Kotlin: <https://central.sonatype.com/artifact/com.ip2location/ip2location-kotlin>
+
 ## Sample Codes
 
 ### Query geolocation information from BIN database

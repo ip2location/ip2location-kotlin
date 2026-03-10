@@ -6,11 +6,11 @@
 # -- Project information
 
 project = 'IP2Location Kotlin'
-copyright = '2025, IP2Location'
+copyright = '2026, IP2Location'
 author = 'IP2Location'
 
-release = '8.5.0'
-version = '8.5.0'
+release = '8.6.0'
+version = '8.6.0'
 
 # -- General configuration
 
